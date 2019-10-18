@@ -222,6 +222,7 @@ for(i in 1:2){
 }
 rm(ph)
 
+
 #Syntax: The for loop will have 2 iterations, and in the for loop body initialzing a new df by using the $ operator allows extraction of the Position column from the both the maize and fang data sets. Using the coercion function as.charater ensures R does not coerces character vectors to factors. A iteration equal to 1 for the if loop will initate the plotting of the maize distribution, the else loop will initate the plotting of the teosinte distribution.
 ```
 
@@ -310,7 +311,19 @@ getwd()
   rm(pp)
   rm(i)
 ```
+### _Your own visualization_
 
+```{r}
+
+
+view(maize_fang_summarise)
+
+bg=ggplot(data = maize_fang_summarise) + geom_bar(mapping = aes(x=Chromosome, fill = number_of_snp))
+
+print(bg)
+ggsave(bg,filename = "maize_fang_summarise_edit.pdf")
+
+```
 
 
 
