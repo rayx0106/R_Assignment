@@ -316,7 +316,7 @@ getwd()
             getwd()
                 }
               }
-  rm(pp)
+  rm(ph)
   rm(i)
 ```
 ### _Your own visualization_
