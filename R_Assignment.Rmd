@@ -5,7 +5,7 @@ output: html_document
 # BCB546X Fall 2019 - R Assignment
 ## David D. Ray
 
-## Prepare R Environment
+## _Prepare R Environment_
 ```{r}
 library(tidyverse) #load tidyverse in order to use readr and dplyr
 ```
