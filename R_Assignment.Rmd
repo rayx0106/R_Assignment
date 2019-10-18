@@ -9,7 +9,7 @@ output: html_document
 ```{r}
 library(tidyverse) #load tidyverse in order to use readr and dplyr
 ```
-## Data Import
+## _Data Import_
 ```{r}
 fang_et_al_genotypes <- read_tsv ("/Users/Harrisvaccines/Documents/R_Assignment/R_Assignment_Data_Sets/fang_et_al_genotypes.txt") #loads and renames data set
 ```
@@ -37,10 +37,16 @@ row.names(fang_et_al_genotypes) #row.names() #gives the names of the row
 row.names(snp_position) #row.names() #gives the names of the row
 
 ```
+```{r}
+str(fang_et_al_genotypes)
+str(snp_position)
+is.data.frame(fang_et_al_genotypes)
+is.data.frame(snp_position)
+```
 
 
 ## Data Processing
-#### snp_position.txt Data Processing
+#### _snp_position.txt Data Processing_
 ##### snp_position is in the correct orientation and does not require transposition
 ##### We need columns 1(SNP_ID), 2(Chromosome), and 4(Position)
 ```{r}
@@ -48,7 +54,7 @@ snp_ID_Chr_Pos <- snp_position[,-c(2,5:15)] #this trims columns 2,5, and everyth
 view(snp_ID_Chr_Pos)
 ```
   
-#### fang_et_al_genotype Data Processing
+#### _fang_et_al_genotype Data Processing_
 ```{r}
 maize_fang_et_al_genotypes <- filter(fang_et_al_genotypes, Group == "ZMMLR" | Group == "ZMMIL" | Group == "ZMMMR") #filter/sort groups
 ```
@@ -66,22 +72,22 @@ teosinte_fang_et_al_genotypes <- t (teosinte_fang_et_al_genotypes) #transpose ne
  
 ```
 ```{r}
-  #Sort a data frame rows in ascending order (from low to high)
-arrange(snp_ID_Chr_Pos, SNP_ID)
+  
+arrange(snp_ID_Chr_Pos, SNP_ID) #Sort df rows in ascending order 
   #this syntax takes column SNP_ID from file snp_ID_Chr_Pos and arranges the values from low to high
 ``` 
   
-## Combined data sets
+## _Combined data sets_
 ```{r}
 maize_fang_et_al_genotypes <- cbind(snp_position, maize_fang_et_al_genotypes)
-  #syntax is we are combinding snp_ID_Chr_Pos with maize_fang_et_al_genotypes at the 1,1 position
+  #Combinding snp_ID_Chr_Pos with maize_fang_et_al_genotypes at the 1,1 position
 teosinte_fang_et_al_genotypes <- cbind(snp_position, teosinte_fang_et_al_genotypes)
- #syntax is we are combinding snp_ID_Chr_Pos with teosinte_fang_et_al_genotypes at the 1,1 position
+ #Combinding snp_ID_Chr_Pos with teosinte_fang_et_al_genotypes at the 1,1 position
 ```
 
 ## Data Arrangment
 
-### Data Frame using lapply
+### _Data Frame using lapply_
 ```{r}
 maize_df <- data.frame(lapply(maize_fang_et_al_genotypes, as.character), stringsAsFactors=FALSE)
 
@@ -91,7 +97,7 @@ teosinte_df <- data.frame(lapply(teosinte_fang_et_al_genotypes, as.character), s
 
 ```
 
-### gsub function
+### _gsub function_
 ```{r}
 maize_df <- data.frame(sapply(maize_df,function(x) {x <- gsub("?","-",x,fixed=TRUE)}))
 
@@ -166,7 +172,7 @@ for (i in 1:10) {
 ```
 ## Part II: Data Visualization
 
-### Prepare R environment
+### _Prepare R environment_
 ```{r}
 if (!require("tidyverse")) install.packages("tidyverse")
 library(tidyverse)
@@ -174,7 +180,7 @@ if (!require("reshape2")) install.packages("reshape2")
 library(reshape2)
 
 ```
-### Chromosome vs. Number of SNPs
+### _Chromosome vs. Number of SNPs_
 ```{r}
 maize_fang_summarise <- summarise(group_by(maize_fang_et_al_genotypes, Chromosome), number_of_snp=n())
 
@@ -231,15 +237,17 @@ rm(ph)
 for(i in 1:2){
   if(i==1){
     maize_melt <-melt(maize_fang_et_al_genotypes,id.vars=c("SNP_ID","Chromosome", "Position"),variable.name = "Sample", value.name="Nucleotide") 
-#Syntax:We begin a for loop using the the melt function to collapse the df from a wide format and stacks a set of columns into a single column of data. We then need to specify the id variables (SNP_ID, Chromosome, Position) and a measured variable (Sample with a value name of Nucleotide)
+#Syntax: We begin a for loop using the the melt function to collapse the df from a wide format and stacks a set of columns into a single column of data. We then need to specify the id variables (SNP_ID, Chromosome, Position) and a measured variable (Sample with a value name of Nucleotide)
     rm(maize_fang_et_al_genotypes)
-nt <- data.frame(lapply(maize_melt, as.character), stringsAsFactors=FALSE) #a new df is constructed from applying the character coercion function to the df maize_melt and setting stringAsFactors to FALSE as previously discussed. This df is now going to be passesd to have subsequent substitutions made using gsub. These substitutions are in the form of replacing a character the nucleotide with a unique number. This function is assisted by fixed=TRUE to help speed the commands.
+nt <- data.frame(lapply(maize_melt, as.character), stringsAsFactors=FALSE) 
+#A new df is constructed from applying the character coercion function to the df maize_melt and setting stringAsFactors to FALSE as previously discussed. This df is now going to be passesd to have subsequent substitutions made using gsub. These substitutions are in the form of replacing a character the nucleotide with a unique number. This function is assisted by fixed=TRUE to help speed the commands.
 nt <- data.frame(lapply(nt,function(x) {x <- gsub("A","1",x,fixed=TRUE)}))
 nt <- data.frame(lapply(nt,function(x) {x <- gsub("C","2",x,fixed=TRUE)}))
 nt <- data.frame(lapply(nt,function(x) {x <- gsub("G","3",x,fixed=TRUE)}))
 nt <- data.frame(lapply(nt,function(x) {x <- gsub("T","4",x,fixed=TRUE)}))
 nt <- data.frame(lapply(nt,function(x) {x <- gsub("?","0",x,fixed=TRUE)}))
-nt$Nucleotide <- c(nt$Nucleotide) #A new df of extracted values using the $ operator from the Nucleotide column consisting of the new substituted values is constructed. These values will now be used to create a new column via mutate function. Using the case_when function we can create new vectors based on comparison of the values in the Nucleotide column. This will performed on the teosinte data as well.
+nt$Nucleotide <- c(nt$Nucleotide) 
+#A new df of extracted values using the $ operator from the Nucleotide column consisting of the new substituted values is constructed. These values will now be used to create a new column via mutate function. Using the case_when function we can create new vectors based on comparison of the values in the Nucleotide column. This will performed on the teosinte data as well.
 maize_melt <- mutate(maize_melt, allele = case_when(nt$Nucleotide==2~ "homozygous",
                                                     nt$Nucleotide==11~ "homozygous",
                                                     nt$Nucleotide==9~ "homozygous",
