@@ -1,0 +1,346 @@
+---
+title: "R_Assignment"
+output: html_document
+---
+# BCB546X Fall 2019 - R Assignment
+## David D. Ray
+
+## _Prepare R Environment_
+```{r}
+library(tidyverse) #load tidyverse in order to use readr and dplyr
+```
+## _Data Import_
+
+Abby: I would suggest making relative paths for these files.
+```{r}
+fang_et_al_genotypes <- read_tsv ("./R_Assignment_Data_Sets/fang_et_al_genotypes.txt") #loads and renames data set
+```
+
+Abby: Same thing for this file.
+```{r}
+snp_position <- read_tsv("./R_Assignment_Data_Sets/snp_position.txt") #loads and renames data set
+```
+## Part I: Data Inspection of fang_et_al_genotypes
+```{r}
+file.info("fang_et_al_genotypes")
+```
+```{r}
+file.info("snp_position")
+```
+```{r}
+colnames(fang_et_al_genotypes)   #colnames() #gives the names of columns
+
+```
+```{r}
+colnames(snp_position) #colnames() #gives the names of columns
+```
+```{r}
+row.names(fang_et_al_genotypes) #row.names() #gives the names of the row
+```
+```{r}
+row.names(snp_position) #row.names() #gives the names of the row
+
+```
+```{r}
+str(fang_et_al_genotypes)
+str(snp_position)
+is.data.frame(fang_et_al_genotypes)
+is.data.frame(snp_position)
+```
+
+
+## Data Processing
+#### _snp_position.txt Data Processing_
+##### snp_position is in the correct orientation and does not require transposition
+##### We need columns 1(SNP_ID), 2(Chromosome), and 4(Position)
+```{r}
+snp_ID_Chr_Pos <- snp_position[,-c(2,5:15)] #this trims columns 2,5, and everything past 5
+view(snp_ID_Chr_Pos)
+```
+  
+#### _fang_et_al_genotype Data Processing_
+```{r}
+maize_fang_et_al_genotypes <- filter(fang_et_al_genotypes, Group == "ZMMLR" | Group == "ZMMIL" | Group == "ZMMMR") #filter/sort groups
+```
+```{r}
+teosinte_fang_et_al_genotypes <- filter(fang_et_al_genotypes, Group == "ZMPBA" | Group == "ZMPIL" | Group == "ZMPJA") #filter/sort groups
+```
+```{r}
+maize_fang_et_al_genotypes <- maize_fang_et_al_genotypes[,-c(1,2,3)]
+teosinte_fang_et_al_genotypes <- teosinte_fang_et_al_genotypes[,-c(1,2,3)]
+ #remove columns 1:3 (sample_ID, JG_OTU, Groups)
+```
+```{r}
+maize_fang_et_al_genotypes <- t (maize_fang_et_al_genotypes) #transpose newly created data sets and places SNP_ID in position 1,1
+teosinte_fang_et_al_genotypes <- t (teosinte_fang_et_al_genotypes) #transpose newly created data sets and places SNP_ID in position 1,1
+ 
+```
+```{r}
+  
+arrange(snp_ID_Chr_Pos, SNP_ID) #Sort df rows in ascending order 
+  #this syntax takes column SNP_ID from file snp_ID_Chr_Pos and arranges the values from low to high
+``` 
+  
+## _Combined data sets_
+Abby: This line isn't working. I substituted maize_fang_et_al_genotypes for maize_transposed in the first line and it worked again.
+```{r}
+maize_fang_et_al_genotypes <- cbind(snp_position, maize_transposed)
+  #Combinding snp_ID_Chr_Pos with maize_fang_et_al_genotypes at the 1,1 position
+teosinte_fang_et_al_genotypes <- cbind(snp_position, teosinte_fang_et_al_genotypes)
+ #Combinding snp_ID_Chr_Pos with teosinte_fang_et_al_genotypes at the 1,1 position
+```
+
+## Data Arrangment
+
+### _Data Frame using lapply_
+```{r}
+maize_df <- data.frame(lapply(maize_fang_et_al_genotypes, as.character), stringsAsFactors=FALSE)
+
+teosinte_df <- data.frame(lapply(teosinte_fang_et_al_genotypes, as.character), stringsAsFactors=FALSE)
+
+#Syntax: We need to create a df applying the Coericion function for Character Type to the list found in maize_fang_et_al_genotypes and teonite_fang_et_all_genotypes. We also need to make sure that R prevents coercing character vectors to factors for ALL columns byt setting the argument stringsAsFactors to false.
+
+```
+
+### _gsub function_
+```{r}
+maize_df <- data.frame(sapply(maize_df,function(x) {x <- gsub("?","-",x,fixed=TRUE)}))
+
+teosinte_df <- data.frame(sapply(teosinte_df,function(x) {x <- gsub("?","-",x,fixed=TRUE)}))
+
+##Syntax: we are creating a function(x) that uses the gsub operation to replace all matches of a string ("?") with a different string ("-"), this function is passed through the df and the output is saved to the previous file name
+```
+## Data Processing
+
+### For maize (Group = ZMMIL, ZMMLR, and ZMMMR) and teosinte (Group = ZMPBA, ZMPIL, and ZMPJA) in the third column of the fang_et_al_genotypes.txt file) we want 40 files in total:
+
+#### 10 files (1 for each chromosome) with SNPs ordered based on increasing position values and with missing data encoded by this symbol: ? for both maize and teosinte (20 files total)
+ 
+Abby: Good job using loops here! I couldn't figure this out. I would change the paths to relative paths for user-friendliness.
+```{r}
+for (i in 1:10) {
+  maize <- filter(maize_fang_et_al_genotypes, Chromosome == i)
+  maize <- arrange(maize, Position)
+  outpath <- "/Users/Harrisvaccines/Documents/R_Assignment/R_Assignment_Output"
+  nam <- sapply(
+    names(maize),function(x){
+                    paste("maize_in", i, ".csv", sep='')
+    })
+  out_filePath <- sapply(nam, function(x){
+                     paste(outpath, x, sep='/')})
+  write.csv(maize, file=out_filePath[i])
+} #10 of maize increase data
+
+for (i in 1:10) {
+  teosinte <- filter(teosinte_fang_et_al_genotypes, Chromosome == i)
+  teosinte <- arrange(teosinte, Position)
+  outpath <- "/Users/Harrisvaccines/Documents/R_Assignment/R_Assignment_Output"
+  nam <- sapply(
+    names(teosinte),function(x){
+                    paste("teosinte_in", i, ".csv", sep='')
+    })
+  out_filePath <- sapply(nam, function(x){
+                     paste(outpath, x, sep='/')})
+  write.csv(teosinte, file=out_filePath[i])
+} #10 of teosinte increase data
+
+#Syntax: the for loop is used to for a total of 10 iterations of a filter function for the Chromosome column on the given dataset (either the combined maize:snp_position or teosinte:snp_position). This output file is then subjected to a arrange function that will sort in ascending order using the Position column. This newly sorted output is then subjected to the previous created function(x) for missing data to be encoded by a "?" character. The final output is then written with unique file name, the species followed by a "_" using the sep= command and a indicator(in) for increasing followed by the chromosome number and finally the file extension .csv
+```
+
+### 10 files (1 for each chromosome) with SNPs ordered based on decreasing position values and with missing data encoded by this symbol: - for both maize and teosinte (20 files total)
+```{r}
+for (i in 1:10) {
+  maize <- filter(maize_df, Chromosome == i)
+  maize <- arrange(maize, desc(Position))
+  outpath <- "/Users/Harrisvaccines/Documents/R_Assignment/R_Assignment_Output"
+  nam <- sapply(
+    names(maize),function(x){
+                    paste("maize_de", i, ".csv", sep='')
+    })
+  out_filePath <- sapply(nam, function(x){
+                     paste(outpath, x, sep='/')})
+  write.csv(maize, file=out_filePath[i])
+}
+
+for (i in 1:10) {
+  teosinte <- filter(teosinte_df, Chromosome == i)
+  teosinte <- arrange(teosinte, desc(Position))
+  outpath <- "/Users/Harrisvaccines/Documents/R_Assignment/R_Assignment_Output"
+  nam <- sapply(
+    names(teosinte),function(x){
+                    paste("teosinte_de", i, ".csv", sep='')
+    })
+  out_filePath <- sapply(nam, function(x){
+                     paste(outpath, x, sep='/')})
+  write.csv(teosinte, file=out_filePath[i])
+}
+   #Syntax: the for loop is used to for a total of 10 iterations of a filter function  for the Chromosome column on the given dataset (either the combined maize:snp_position or teosinte:snp_position). This output file is then subjected to a arrange function with a descending argument using the Position column. This newly sorted output is then subjected to the previous created function(x) for missing data to be encoded by a "-" character. The final output is then written with unique file name, the species followed by a "_" using the sep= command and a indicator(de) for increasing followed by the chromosome number and finally the file extension .csv
+```
+## Part II: Data Visualization
+
+### _Prepare R environment_
+```{r}
+if (!require("tidyverse")) install.packages("tidyverse")
+library(tidyverse)
+if (!require("reshape2")) install.packages("reshape2")
+library(reshape2)
+
+```
+### _Chromosome vs. Number of SNPs_
+Abby: Error: Column `SNP_ID` must have a unique name
+```{r}
+maize_fang_summarise <- summarise(group_by(maize_fang_et_al_genotypes, Chromosome), number_of_snp=n())
+
+view(maize_fang_summarise)
+
+ph=ggplot(data = maize_fang_summarise) + geom_point(mapping = aes(x=Chromosome, y=number_of_snp), colour = 'red')
+
+print(ph)
+
+ggsave(ph,filename = "maize_fang_Chr_vs_snp_plot.pdf")
+rm(ph)
+#ph is place holder
+
+
+#Now for teosnite_fang data
+teosinte_fang_summarise <- summarise(group_by(teosinte_fang_et_al_genotypes, Chromosome), number_of_snp=n())
+
+view(teosinte_fang_summarise)
+ph=ggplot(data = teosinte_fang_summarise) + geom_point(mapping = aes(x=Chromosome, y=number_of_snp), colour = 'green')
+print(ph)
+ggsave(ph,filename = "teosinte_fang_Chr_vs_snp_plot.pdf")
+rm(ph)
+```
+
+## Distribution of SNPs on Chromosomes
+Abby: Error: `data` must be uniquely named but has duplicate columns
+```{r}
+for(i in 1:2){
+  maize_fang_et_al_genotypes$Position <- as.numeric(maize_fang_et_al_genotypes$Position)
+  teosinte_fang_et_al_genotypes$Position <- as.numeric(teosinte_fang_et_al_genotypes$Position)
+  if(i==1){
+  ph=ggplot(data = maize_fang_et_al_genotypes, mapping=aes(x=Chromosome, y=Position))+
+      geom_point(alpha=0.1)
+  print(ph)
+  ggsave(ph,filename = "maize_distribution.pdf")
+  dev.off()
+  getwd()
+          }else{
+  ph=ggplot(data = teosinte_fang_et_al_genotypes, mapping=aes(x=Chromosome, y=Position))+
+     geom_point(alpha=0.1)
+  print(ph)
+  ggsave(ph,filename = "teosinte_distribution.pdf")
+  dev.off()
+  getwd()
+               }
+}
+rm(ph)
+
+
+#Syntax: The for loop will have 2 iterations, and in the for loop body initialzing a new df by using the $ operator allows extraction of the Position column from the both the maize and fang data sets. Using the coercion function as.charater ensures R does not coerces character vectors to factors. A iteration equal to 1 for the if loop will initate the plotting of the maize distribution, the else loop will initate the plotting of the teosinte distribution.
+```
+
+### Missing data and amount of heterzygosity
+Abby: I definitely reccommend making relative paths here.
+```{r}
+for(i in 1:2){
+  if(i==1){
+    maize_melt <-melt(maize_fang_et_al_genotypes,id.vars=c("SNP_ID","Chromosome", "Position"),variable.name = "Sample", value.name="Nucleotide") 
+#Syntax: We begin a for loop using the the melt function to collapse the df from a wide format and stacks a set of columns into a single column of data. We then need to specify the id variables (SNP_ID, Chromosome, Position) and a measured variable (Sample with a value name of Nucleotide)
+    rm(maize_fang_et_al_genotypes)
+nt <- data.frame(lapply(maize_melt, as.character), stringsAsFactors=FALSE) 
+#A new df is constructed from applying the character coercion function to the df maize_melt and setting stringAsFactors to FALSE as previously discussed. This df is now going to be passesd to have subsequent substitutions made using gsub. These substitutions are in the form of replacing a character the nucleotide with a unique number. This function is assisted by fixed=TRUE to help speed the commands.
+nt <- data.frame(lapply(nt,function(x) {x <- gsub("A","1",x,fixed=TRUE)}))
+nt <- data.frame(lapply(nt,function(x) {x <- gsub("C","2",x,fixed=TRUE)}))
+nt <- data.frame(lapply(nt,function(x) {x <- gsub("G","3",x,fixed=TRUE)}))
+nt <- data.frame(lapply(nt,function(x) {x <- gsub("T","4",x,fixed=TRUE)}))
+nt <- data.frame(lapply(nt,function(x) {x <- gsub("?","0",x,fixed=TRUE)}))
+nt$Nucleotide <- c(nt$Nucleotide) 
+#A new df of extracted values using the $ operator from the Nucleotide column consisting of the new substituted values is constructed. These values will now be used to create a new column via mutate function. Using the case_when function we can create new vectors based on comparison of the values in the Nucleotide column. This will performed on the teosinte data as well.
+maize_melt <- mutate(maize_melt, allele = case_when(nt$Nucleotide==2~ "homozygous",
+                                                    nt$Nucleotide==11~ "homozygous",
+                                                    nt$Nucleotide==9~ "homozygous",
+                                                    nt$Nucleotide==6~ "homozygous",
+                                                    nt$Nucleotide==1~ "missing",
+                                                    nt$Nucleotide!=(1|2|11|9|6)~ "heterozygous") #Using ! we know that if the value returned is not one of those we will return heterozgous. Now we have a proportion of homozygous, heterozygous, and missing data
+                    )
+           }else{ 
+teosinte_melt<-melt(teosinte_fang_et_al_genotypes,id.vars=c("SNP_ID","Chromosome", "Position"),variable.name = "Sample", value.name="Nucleotide")
+rm(teosinte_fang_et_al_genotypes)
+nt <- data.frame(lapply(teosinte_melt, as.character), stringsAsFactors=FALSE)
+nt <- data.frame(lapply(nt,function(x) {x <- gsub("A","1",x,fixed=TRUE)}))
+nt <- data.frame(lapply(nt,function(x) {x <- gsub("C","2",x,fixed=TRUE)}))
+nt <- data.frame(lapply(nt,function(x) {x <- gsub("G","3",x,fixed=TRUE)}))
+nt <- data.frame(lapply(nt,function(x) {x <- gsub("T","4",x,fixed=TRUE)}))
+nt <- data.frame(lapply(nt,function(x) {x <- gsub("?","0",x,fixed=TRUE)}))
+nt$Nucleotide <- c(nt$Nucleotide)
+teosinte_melt <- mutate(teosinte_melt, allele = case_when(nt$Nucleotide==2~ "homozygous",
+                                                          nt$Nucleotide==11~ "homozygous",
+                                                          nt$Nucleotide==9~ "homozygous",
+                                                          nt$Nucleotide==6~ "homozygous",
+                                                          nt$Nucleotide==1~ "missing",
+                                                          nt$Nucleotide!=(1|2|11|9|6)~ "heterozygous")
+                        )
+                 }
+       }
+rm(nt)
+rm(i)
+
+
+for(i in 1:2){
+  if(i==1){
+ph=ggplot(data = maize_melt) + 
+  geom_bar(mapping = aes(x =Sample, fill=allele, width = 4,height = 4))
+print(ph)
+ggsave(ph,filename = "maize_proportion.pdf")
+dev.off()
+getwd()
+          }else{
+            ph=ggplot(data = teosinte_melt) + 
+            geom_bar(mapping = aes(x =Sample, fill=allele, width = 4,height = 4))
+            print(ph)
+            ggsave(ph,filename = "teosinte_proportion.pdf")
+            dev.off()
+            getwd()
+                }
+              }
+  rm(ph)
+  rm(i)
+getwd()
+setwd("/Users/Harrisvaccines/Documents/R_Assignment")
+for(i in 1:2){
+  if(i==1){
+ph=ggplot(data = maize_melt) + 
+  geom_bar(mapping = aes(x =Chromosome, fill=allele), position = 'fill', width = 4,height = 4)
+print(ph)
+ggsave(ph,filename = "maize_snp_proportion.pdf")
+dev.off()
+getwd()
+          }else{
+            ph=ggplot(data = teosinte_melt) + 
+            geom_bar(mapping = aes(x =Chromosome, fill=allele), position = 'fill', width = 4,height = 4)
+            print(ph)
+            ggsave(ph,filename = "teosinte_snp_proportion.pdf")
+            dev.off()
+            getwd()
+                }
+              }
+  rm(ph)
+  rm(i)
+```
+### _Your own visualization_
+
+```{r}
+
+
+view(maize_fang_summarise)
+
+bg=ggplot(data = maize_fang_summarise) + geom_bar(mapping = aes(x=Chromosome, fill = number_of_snp))
+
+print(bg)
+ggsave(bg,filename = "maize_fang_summarise_edit.pdf")
+
+```
+
+
+Abby: Overall, I would double check your snytax for the plots once you have changed to relative paths. I couldn't reproduce most of your graphs. Great work figuring out loops for the file-naming.
