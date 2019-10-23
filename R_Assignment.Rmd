@@ -277,7 +277,7 @@ teosinte_melt <- mutate(teosinte_melt, allele = case_when(nt$Nucleotide==2~ "hom
 rm(nt)
 rm(i)
 
-#The vectors are read as 1/1=2, 2/2=6, 3/3=9, 4/4=11, and 0/0=1. The "case when" initiates a new column on the condition to their results of 2,11, 9,6,1
+#The vectors are read as 1/1=2, 2/2=6, 3/3=9, 4/4=11, and 0/0=1. The "case when" initiates a new column on the condition to their results of 2, 11, 9, 6, and 1
 
 
 for(i in 1:2){
