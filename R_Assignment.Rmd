@@ -11,10 +11,10 @@ library(tidyverse) #load tidyverse in order to use readr and dplyr
 ```
 ## _Data Import_
 ```{r}
-fang_et_al_genotypes <- read_tsv ("/Users/Harrisvaccines/Documents/R_Assignment/R_Assignment_Data_Sets/fang_et_al_genotypes.txt") #loads and renames data set
+fang_et_al_genotypes <- read_tsv ("./R_Assignment_Data_Sets/fang_et_al_genotypes.txt") #loads and renames data set
 ```
 ```{r}
-snp_position <- read_tsv("/Users/Harrisvaccines/Documents/R_Assignment/R_Assignment_Data_Sets/snp_position.txt") #loads and renames data set
+snp_position <- read_tsv("./R_Assignment_Data_Sets/snp_position.txt") #loads and renames data set
 ```
 ## Part I: Data Inspection of fang_et_al_genotypes
 ```{r}
@@ -115,7 +115,7 @@ teosinte_df <- data.frame(sapply(teosinte_df,function(x) {x <- gsub("?","-",x,fi
 for (i in 1:10) {
   maize <- filter(maize_fang_et_al_genotypes, Chromosome == i)
   maize <- arrange(maize, Position)
-  outpath <- "/Users/Harrisvaccines/Documents/R_Assignment/R_Assignment_Output"
+  outpath <- "./R_Assignment_Output/"
   nam <- sapply(
     names(maize),function(x){
                     paste("maize_in", i, ".csv", sep='')
@@ -128,7 +128,7 @@ for (i in 1:10) {
 for (i in 1:10) {
   teosinte <- filter(teosinte_fang_et_al_genotypes, Chromosome == i)
   teosinte <- arrange(teosinte, Position)
-  outpath <- "/Users/Harrisvaccines/Documents/R_Assignment/R_Assignment_Output"
+  outpath <- "./R_Assignment_Output/"
   nam <- sapply(
     names(teosinte),function(x){
                     paste("teosinte_in", i, ".csv", sep='')
@@ -146,7 +146,7 @@ for (i in 1:10) {
 for (i in 1:10) {
   maize <- filter(maize_df, Chromosome == i)
   maize <- arrange(maize, desc(Position))
-  outpath <- "/Users/Harrisvaccines/Documents/R_Assignment/R_Assignment_Output"
+  outpath <- "./R_Assignment_Output/"
   nam <- sapply(
     names(maize),function(x){
                     paste("maize_de", i, ".csv", sep='')
@@ -159,7 +159,7 @@ for (i in 1:10) {
 for (i in 1:10) {
   teosinte <- filter(teosinte_df, Chromosome == i)
   teosinte <- arrange(teosinte, desc(Position))
-  outpath <- "/Users/Harrisvaccines/Documents/R_Assignment/R_Assignment_Output"
+  outpath <- "./R_Assignment_Output/"
   nam <- sapply(
     names(teosinte),function(x){
                     paste("teosinte_de", i, ".csv", sep='')
@@ -276,6 +276,8 @@ teosinte_melt <- mutate(teosinte_melt, allele = case_when(nt$Nucleotide==2~ "hom
        }
 rm(nt)
 rm(i)
+
+#The vectors are read as 1/1=2, 2/2=6, 3/3=9, 4/4=11, and 0/0=1. The "case when" initiates a new column on the condition to their results of 2,11, 9,6,1
 
 
 for(i in 1:2){
